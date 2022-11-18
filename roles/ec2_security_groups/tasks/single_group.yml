@@ -2,22 +2,24 @@
 - name: Ensure rules list is clear
   set_fact:
     rules: []
+    second_rules: []
 
 - name: Build list of ingress rules to keep
   set_fact:
-    rules: "[{% for r in rules %} {{ r }},{% endfor %} {% for ip in item.ip_ranges %}{'proto': '{{ item.ip_protocol }}', 'from_port': '{{ item.from_port }}', 'to_port': '{{ item.to_port }}', 'cidr_ip': '{{ ip.cidr_ip }}'}{{ ',' if not loop.last else '' }}{% endfor %} ]"
+    rules: "[{% for r in rules %} {{ r }},{% endfor %} {% for ip in item.ip_ranges %}{'proto': '{{ item.ip_protocol }}'{% if item.from_port is defined %}, 'from_port': '{{ item.from_port }}'{% endif %}{% if item.to_port is defined %}, 'to_port': '{{ item.to_port }}'{% endif %}, 'cidr_ip': '{{ ip.cidr_ip }}'}{{ ',' if not loop.last else '' }}{% endfor %} ]"
+    second_rules: "[{% for r in rules %} {{ r }},{% endfor %} {% for grp in item.user_id_group_pairs %}{'proto': '{{ item.ip_protocol }}', 'group_name': '{{ grp.group_id }}'{% if grp.description is defined %}, 'group_desc': '{{ grp.description }}'{% endif %}}{{ ',' if not loop.last else '' }}{% endfor %}]"
   loop: "{{ security_group.ip_permissions }}"
   when: '"0.0.0.0/0" not in {{ item.ip_ranges | selectattr("cidr_ip", "defined") | map(attribute="cidr_ip") | list }}'
 
 - debug:
-    var: rules
+    var: rules + second_rules
 
 - name: Replace only ingress rules
   amazon.aws.ec2_group:
     name: "{{ security_group.group_name }}"
     description: "{{ security_group.group_description }}"
     vpc_id: "{{ security_group.vpc_id }}"
-    rules: "{{ rules }}"
+    rules: "{{ rules + second_rules }}"
     purge_rules: yes
     purge_rules_egress: no
     purge_tags: no
