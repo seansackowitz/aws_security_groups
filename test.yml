@@ -1,0 +1,67 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    security_groups:
+      - group_name: test_security_group
+        description: my test security group
+        vpc_id: vpc-abcd1234
+        ip_permissions:
+          - from_port: 8182
+            ip_protocol: "tcp"
+            ip_ranges:
+              - cidr_ip: "0.0.0.0/0"
+            ipv6_ranges: []
+            prefix_list_ids: []
+            to_port: 8182
+            user_id_group_pairs: []
+          - from_port: 80
+            ip_protocol: "tcp"
+            ip_ranges:
+              - cidr_ip: "10.0.0.0/24"
+              - cidr_ip: "10.10.0.0/24"
+            ipv6_ranges: []
+            prefix_list_ids: []
+            to_port: 80
+            user_id_group_pairs: []
+          - from_port: 443
+            ip_protocol: "tcp"
+            ip_ranges:
+              - cidr_ip: "10.20.0.0/24"
+              - cidr_ip: "10.30.0.0/24"
+            ipv6_ranges: []
+            prefix_list_ids: []
+            to_port: 443
+            user_id_group_pairs: []
+      - group_name: test_security_group2
+        description: my test security group2
+        vpc_id: vpc-abcd1235
+        ip_permissions:
+          - from_port: 8182
+            ip_protocol: "tcp"
+            ip_ranges:
+              - cidr_ip: "0.0.0.0/0"
+            ipv6_ranges: []
+            prefix_list_ids: []
+            to_port: 8182
+            user_id_group_pairs: []
+          - from_port: 80
+            ip_protocol: "tcp"
+            ip_ranges:
+              - cidr_ip: "10.1.0.0/24"
+              - cidr_ip: "10.11.0.0/24"
+            ipv6_ranges: []
+            prefix_list_ids: []
+            to_port: 80
+            user_id_group_pairs: []
+          - from_port: 443
+            ip_protocol: "tcp"
+            ip_ranges:
+              - cidr_ip: "10.21.0.0/24"
+              - cidr_ip: "10.31.0.0/24"
+            ipv6_ranges: []
+            prefix_list_ids: []
+            to_port: 443
+            user_id_group_pairs: []
+  roles:
+    - ec2_security_groups

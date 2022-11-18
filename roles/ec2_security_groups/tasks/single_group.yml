@@ -1,0 +1,23 @@
+---
+- name: Ensure rules list is clear
+  set_fact:
+    rules: []
+
+- name: Build list of ingress rules to keep
+  set_fact:
+    rules: "[{% for r in rules %} {{ r }},{% endfor %} {% for ip in item.ip_ranges %}{'proto': '{{ item.ip_protocol }}', 'from_port': '{{ item.from_port }}', 'to_port': '{{ item.to_port }}', 'cidr_ip': '{{ ip.cidr_ip }}'}{{ ',' if not loop.last else '' }}{% endfor %} ]"
+  loop: "{{ security_group.ip_permissions }}"
+  when: '"0.0.0.0/0" not in {{ item.ip_ranges | selectattr("cidr_ip", "defined") | map(attribute="cidr_ip") | list }}'
+
+- debug:
+    var: rules
+
+- name: Replace only ingress rules
+  amazon.aws.ec2_group:
+    name: "{{ security_group.group_name }}"
+    description: "{{ security_group.group_description }}"
+    vpc_id: "{{ security_group.vpc_id }}"
+    rules: "{{ rules }}"
+    purge_rules: yes
+    purge_rules_egress: no
+    purge_tags: no

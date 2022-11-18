@@ -1,0 +1,10 @@
+---
+- name: Gather all security groups
+  amazon.aws.ec2_group_info:
+    idont: remember
+
+- name: Single group at a time
+  ansible.builtin.include_tasks: single_group.yml
+  loop: "{{ security_groups }}"
+  loop_control:
+    loop_var: security_group
